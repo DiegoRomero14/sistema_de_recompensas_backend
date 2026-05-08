@@ -1,8 +1,17 @@
 const movimientoRepository = require('../repositories/movimiento.repository');
 const usuarioRepository = require('../repositories/usuario.repository');
 
-const listarMovimientos = async () => {
-  return await movimientoRepository.listarMovimientos();
+const normalizarFiltrosMovimientos = (filtros = {}) => ({
+  buscar: filtros.buscar || filtros.q || '',
+  tipo_movimiento: filtros.tipo_movimiento || '',
+  origen: filtros.origen || '',
+  usuario_id: filtros.usuario_id || '',
+  fecha_desde: filtros.fecha_desde || '',
+  fecha_hasta: filtros.fecha_hasta || ''
+});
+
+const listarMovimientos = async (filtros = {}) => {
+  return await movimientoRepository.listarMovimientos(normalizarFiltrosMovimientos(filtros));
 };
 
 const obtenerMovimientoPorId = async (id) => {

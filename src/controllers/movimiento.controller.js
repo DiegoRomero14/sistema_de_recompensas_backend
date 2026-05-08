@@ -2,7 +2,7 @@ const movimientoService = require('../services/movimiento.service');
 
 const listarMovimientos = async (req, res) => {
   try {
-    const movimientos = await movimientoService.listarMovimientos();
+    const movimientos = await movimientoService.listarMovimientos(req.query);
 
     return res.status(200).json({
       ok: true,
