@@ -1,5 +1,46 @@
 const usuarioService = require('../services/usuario.service');
 
+const registrarUsuario = async (req, res) => {
+  try {
+    const usuario = await usuarioService.registrarUsuario(req.body);
+
+    return res.status(201).json({
+      ok: true,
+      mensaje: 'Usuario registrado correctamente',
+      data: usuario
+    });
+  } catch (error) {
+    return res.status(400).json({
+      ok: false,
+      mensaje: error.message
+    });
+  }
+};
+
+const iniciarSesion = async (req, res) => {
+  try {
+    const sesion = await usuarioService.iniciarSesion(req.body);
+
+    return res.status(200).json({
+      ok: true,
+      mensaje: 'Inicio de sesion correcto',
+      data: sesion
+    });
+  } catch (error) {
+    const status =
+      error.message === 'Credenciales invalidas'
+        ? 401
+        : error.message === 'Usuario inactivo'
+          ? 403
+          : 400;
+
+    return res.status(status).json({
+      ok: false,
+      mensaje: error.message
+    });
+  }
+};
+
 const crearUsuario = async (req, res) => {
   try {
     const usuario = await usuarioService.crearUsuario(req.body);
@@ -19,7 +60,7 @@ const crearUsuario = async (req, res) => {
 
 const listarUsuarios = async (req, res) => {
   try {
-    const usuarios = await usuarioService.listarUsuarios();
+    const usuarios = await usuarioService.listarUsuarios(req.query);
 
     return res.status(200).json({
       ok: true,
@@ -100,6 +141,8 @@ const obtenerSaldoUsuario = async (req, res) => {
 };
 
 module.exports = {
+  registrarUsuario,
+  iniciarSesion,
   crearUsuario,
   listarUsuarios,
   obtenerUsuarioPorId,

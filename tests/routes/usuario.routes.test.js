@@ -13,6 +13,101 @@ describe('Pruebas de rutas - usuario.routes', () => {
     vi.restoreAllMocks();
   });
 
+  it('POST /api/v1/usuarios/registro debe registrar un usuario', async () => {
+    vi.spyOn(usuarioService, 'registrarUsuario').mockResolvedValue({
+      id: 10,
+      nombre: 'Usuario Registro',
+      correo: 'registro@mail.com'
+    });
+
+    const response = await request(app)
+      .post('/api/v1/usuarios/registro')
+      .send({
+        tipo_documento: 'CC',
+        numero_documento: '10101010',
+        nombre: 'Usuario Registro',
+        correo: 'registro@mail.com',
+        telefono: '3001234567',
+        contrasena: 'secreta123'
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body.ok).toBe(true);
+    expect(response.body.data.correo).toBe('registro@mail.com');
+  });
+
+  it('POST /api/v1/usuarios/registro debe responder 400 si el registro falla', async () => {
+    vi.spyOn(usuarioService, 'registrarUsuario').mockRejectedValue(
+      new Error(
+        'Los campos tipo_documento, numero_documento, nombre, correo y contrasena son obligatorios'
+      )
+    );
+
+    const response = await request(app)
+      .post('/api/v1/usuarios/registro')
+      .send({
+        correo: 'registro@mail.com'
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.ok).toBe(false);
+    expect(response.body.mensaje).toContain('obligatorios');
+  });
+
+  it('POST /api/v1/usuarios/login debe iniciar sesion', async () => {
+    vi.spyOn(usuarioService, 'iniciarSesion').mockResolvedValue({
+      usuario: {
+        id: 10,
+        correo: 'login@mail.com'
+      },
+      token: 'token-prueba'
+    });
+
+    const response = await request(app)
+      .post('/api/v1/usuarios/login')
+      .send({
+        correo: 'login@mail.com',
+        contrasena: 'secreta123'
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.ok).toBe(true);
+    expect(response.body.data.usuario.correo).toBe('login@mail.com');
+    expect(response.body.data.token).toBe('token-prueba');
+  });
+
+  it('POST /api/v1/usuarios/login debe responder 401 si las credenciales son invalidas', async () => {
+    vi.spyOn(usuarioService, 'iniciarSesion').mockRejectedValue(
+      new Error('Credenciales invalidas')
+    );
+
+    const response = await request(app)
+      .post('/api/v1/usuarios/login')
+      .send({
+        correo: 'login@mail.com',
+        contrasena: 'incorrecta'
+      });
+
+    expect(response.status).toBe(401);
+    expect(response.body.ok).toBe(false);
+    expect(response.body.mensaje).toBe('Credenciales invalidas');
+  });
+
+  it('POST /api/v1/usuarios/login debe responder 403 si el usuario esta inactivo', async () => {
+    vi.spyOn(usuarioService, 'iniciarSesion').mockRejectedValue(new Error('Usuario inactivo'));
+
+    const response = await request(app)
+      .post('/api/v1/usuarios/login')
+      .send({
+        correo: 'inactivo@mail.com',
+        contrasena: 'secreta123'
+      });
+
+    expect(response.status).toBe(403);
+    expect(response.body.ok).toBe(false);
+    expect(response.body.mensaje).toBe('Usuario inactivo');
+  });
+
   it('POST /api/v1/usuarios debe crear un usuario', async () => {
     vi.spyOn(usuarioService, 'crearUsuario').mockResolvedValue({
       id: 1,
